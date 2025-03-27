@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Universe - Tienda de Videojuegos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+        }
+        .game-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: linear-gradient(145deg, #1e1e1e, #161616);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .game-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .game-card img {
+            transition: transform 0.3s ease;
+        }
+        .game-card:hover img {
+            transform: scale(1.1);
+        }
+        .quantity-btn {
+            transition: background-color 0.2s ease;
+        }
+        .quantity-btn:hover {
+            background-color: #4a4a4a;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 p-8">
+<div class="container mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8 text-white animate-fade-in">Game Universe 🎮</h1>
+
+    <form action="/comprar" method="POST" class="animate-fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <% videojuegos.forEach((juego, index) => { %>
+                <div class="game-card p-4 shadow-lg rounded-lg text-center" style="animation-delay: <%= index * 0.1 %>s;">
+                    <img src="<%= juego.imagen %>" alt="<%= juego.nombre %>"
+                         class="w-full h-64 object-cover rounded-t-lg mb-4">
+
+                    <h3 class="text-xl font-semibold mb-2"><%= juego.nombre %></h3>
+                    <p class="text-lg text-green-400 mb-4">$<%= juego.precio %></p>
+
+                    <div class="flex justify-center items-center space-x-2">
+                        <button type="button"
+                                class="menos quantity-btn bg-gray-700 text-white w-10 h-10 rounded-full"
+                                data-id="<%= juego.id %>">-</button>
+
+                        <input type="number"
+                               name="cantidad_<%= juego.id %>"
+                               value="0"
+                               min="0"
+                               id="cantidad_<%= juego.id %>"
+                               class="cantidad-input w-16 text-center bg-gray-800 text-white rounded">
+
+                        <button type="button"
+                                class="mas quantity-btn bg-gray-700 text-white w-10 h-10 rounded-full"
+                                data-id="<%= juego.id %>">+</button>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div class="text-center mt-8">
+            <button type="submit"
+                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105">
+                Comprar Juegos
+            </button>
+        </div>
+    </form>
+
+    <% if (juegosSeleccionados.length > 0) { %>
+        <div class="mt-12 bg-gray-800 p-6 rounded-lg animate-fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-white">Productos Seleccionados</h2>
+
+            <table class="w-full text-left">
+                <thead>
+                <tr class="border-b border-gray-700">
+                    <th class="pb-2">Nombre</th>
+                    <th class="pb-2">Cantidad</th>
+                    <th class="pb-2">Precio</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% juegosSeleccionados.forEach(juego => { %>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-2"><%= juego.nombre %></td>
+                        <td class="py-2"><%= juego.cantidad %></td>
+                        <td class="py-2 text-green-400">$<%= juego.precio * juego.cantidad %></td>
+                    </tr>
+                <% }) %>
+                </tbody>
+            </table>
+
+            <div class="mt-6 text-right">
+                <h3 class="text-2xl font-bold text-white">Total: <span class="text-green-400">$<%= total %></span></h3>
+            </div>
+
+            <div class="text-center mt-6">
+                <form action="/generar-factura" method="POST">
+                    <input type="hidden" name="juegosDetalles" value='<%= JSON.stringify(juegosSeleccionados) %>'>
+                    <input type="hidden" name="total" value="<%= total %>">
+                    <button type="submit"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105">
+                        Generar Factura
+                    </button>
+                </form>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<script>
+    document.querySelectorAll('.mas').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const id = e.target.getAttribute('data-id');
+            let cantidadInput = document.getElementById('cantidad_' + id);
+            cantidadInput.value = parseInt(cantidadInput.value) + 1;
+        });
+    });
+
+    document.querySelectorAll('.menos').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const id = e.target.getAttribute('data-id');
+            let cantidadInput = document.getElementById('cantidad_' + id);
+            if (parseInt(cantidadInput.value) > 0) {
+                cantidadInput.value = parseInt(cantidadInput.value) - 1;
+            }
+        });
+    });
+</script>
+</body>
+</html>
